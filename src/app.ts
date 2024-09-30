@@ -12,8 +12,8 @@ import { Server } from './presentation/server';
 async function main() {
 
   await MongoDatabase.connect({
-    dbName: envs.MONGO_URL,
-    mongoUrl: envs.MONGO_DB_NAME,
+    dbName: envs.MONGO_DB_NAME,
+    mongoUrl: envs.MONGO_URL,
   });
 
   const server = new Server({
