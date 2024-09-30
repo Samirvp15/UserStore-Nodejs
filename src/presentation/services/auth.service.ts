@@ -8,7 +8,9 @@ import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from "../../do
 export class AuthService {
 
     // DI
-    constructor() { }
+    constructor(
+        // DI -EMAIL SERVICE
+    ) { }
 
     public async registerUser(registerUserDto: RegisterUserDto) {
 
@@ -23,10 +25,10 @@ export class AuthService {
             user.password = bcryptAdapter.hash(registerUserDto.password);
 
             await user.save();
-            // JWT PARA AUTENTICAR USUARIO
             
 
             // EMAIL DE CONFIRMACION
+
 
 
             const {password, ...userEntity} = UserEntity.fromObject(user);
