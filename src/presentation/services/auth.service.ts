@@ -1,6 +1,7 @@
-import { bcryptAdapter, JwtAdapter } from "../../config";
+import { bcryptAdapter, envs, JwtAdapter } from "../../config";
 import { UserModel } from "../../data";
 import { CustomError, LoginUserDto, RegisterUserDto, UserEntity } from "../../domain";
+import { EmailService } from "./email.service";
 
 
 
@@ -10,6 +11,7 @@ export class AuthService {
     // DI
     constructor(
         // DI -EMAIL SERVICE
+        private readonly emailService: EmailService,
     ) { }
 
     public async registerUser(registerUserDto: RegisterUserDto) {
@@ -20,21 +22,21 @@ export class AuthService {
         try {
 
             const user = new UserModel(registerUserDto);
-        
+
             // ENCRIPTAR PASSWORD
             user.password = bcryptAdapter.hash(registerUserDto.password);
 
             await user.save();
-            
+
 
             // EMAIL DE CONFIRMACION
+            this.sendEmailValidationLink(user.email);
 
 
-
-            const {password, ...userEntity} = UserEntity.fromObject(user);
+            const { password, ...userEntity } = UserEntity.fromObject(user);
 
             return {
-                user: {...userEntity},
+                user: { ...userEntity },
                 token: 'ABC',
             };
 
@@ -47,16 +49,16 @@ export class AuthService {
     public async loginUser(loginUserDto: LoginUserDto) {
 
         const user = await UserModel.findOne({ email: loginUserDto.email });
-        
+
         if (!user) throw CustomError.badRequest('Invalid credentials');
 
         const isMatching = bcryptAdapter.compare(loginUserDto.password, user.password);
 
         if (!isMatching) throw CustomError.badRequest('Password incorrect');
 
-        const {password, ...userEntity} = UserEntity.fromObject(user);
+        const { password, ...userEntity } = UserEntity.fromObject(user);
 
-        const token = await JwtAdapter.generateToken({id: user.id});
+        const token = await JwtAdapter.generateToken({ id: user.id });
 
         if (!token) throw CustomError.internalServer('Error creating JWT');
 
@@ -68,5 +70,52 @@ export class AuthService {
         }
 
     }
+
+
+
+    private sendEmailValidationLink = async (email: string) => {
+
+        const token = await JwtAdapter.generateToken({ email });
+        if (!token) throw CustomError.internalServer('Error getting token');
+
+        const link = `${envs.WEBSERVICE_URL}/auth/validate-email/${token}`;
+        const html = `
+            <h1>Validate your Email</h1>
+            <p>Click on the link below to validate your email: </p>
+            <a href="${link}">Validate your email: ${email}</a>
+        `;
+
+        const options = {
+            to: email,
+            subject: 'Validate your email',
+            htmlBody: html,
+        }
+
+        const isSent = await this.emailService.sendEmail(options);
+
+        if (!isSent) throw CustomError.internalServer('Error sending email validation');
+        return true;
+
+    }
+
+    public validateEmail = async (token: string) => {
+
+        const payload = await JwtAdapter.validateToken(token);
+        if (!payload) throw CustomError.unauthorized('Invalid token');
+
+        const { email } = payload as { email: string };
+        if (!email) throw CustomError.internalServer('Email not in token');
+
+        const user = await UserModel.findOne({email});
+        if (!user) throw CustomError.internalServer('Email not exists');
+
+        user.emailValidated = true;
+        await user.save();
+
+        return true;
+
+
+    }
+
 
 }

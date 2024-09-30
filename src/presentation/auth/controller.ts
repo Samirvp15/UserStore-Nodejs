@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { CustomError, LoginUserDto, RegisterUserDto } from "../../domain";
 import { AuthService } from "../services/auth.service";
+import { error } from "console";
 
 
 export class AuthController {
@@ -48,7 +49,13 @@ export class AuthController {
     }
 
     validateEmail = (req: Request, res: Response) => {
-        res.json('validate');
+
+        const { token } = req.params;
+       
+        this.authService.validateEmail(token)
+            .then(() => res.json('Email validated'))
+            .catch(error => this.handleError(error,res));
+
     }
 
 
