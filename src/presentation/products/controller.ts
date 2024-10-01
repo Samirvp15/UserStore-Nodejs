@@ -1,13 +1,16 @@
+
+
+
 import { Request, Response } from "express";
-import { CreateCategoryDto, CustomError, PaginationDto } from "../../domain";
-import { CategorService } from "../services/category.service";
+import { CreateProductDto, CustomError, PaginationDto } from "../../domain";
+import { ProductService } from "../services/product.service";
 
 
-export class CategoryController {
+export class ProductController {
 
     // DI
     constructor(
-        private readonly categoryService: CategorService,
+        private readonly productService: ProductService,
     ) { }
 
     private handleError = (error: unknown, res: Response) => {
@@ -21,17 +24,17 @@ export class CategoryController {
     }
 
 
-    createCategory = async (req: Request, res: Response) => {
+    createProduct = async (req: Request, res: Response) => {
 
-        const [error, createCategoryDto] = CreateCategoryDto.create(req.body);
+        const [error, createProductDto] = CreateProductDto.create(req.body);
         if (error) return res.status(400).json({ error });
 
-        this.categoryService.createCategory(createCategoryDto!, req.body.user)
-            .then(category => res.status(201).json(category))
+        this.productService.createProduct(createProductDto!)
+            .then(product => res.status(201).json(product))
             .catch(error => this.handleError(error, res));
     }
 
-    getCategories = async (req: Request, res: Response) => {
+    getProducts = async (req: Request, res: Response) => {
 
         const {page = 1, limit =10} = req.query;
 
@@ -39,8 +42,10 @@ export class CategoryController {
 
         if (error) return res.status(400).json({error});
 
-        this.categoryService.getCategories(paginationDto!)
-            .then(categories => res.status(201).json(categories))
+        res.json(paginationDto);
+
+        this.productService.getProducts(paginationDto!)
+            .then(products => res.status(201).json(products))
             .catch(error => this.handleError(error, res));
 
     }
