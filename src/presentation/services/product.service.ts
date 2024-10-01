@@ -12,7 +12,7 @@ export class ProductService {
 
         const productExist = await ProductModel.findOne({ name: createProductDto.name });
 
-        if (productExist) throw CustomError.badRequest('Category already exist');
+        if (productExist) throw CustomError.badRequest('Product already exist');
 
         try {
 
@@ -34,7 +34,7 @@ export class ProductService {
 
     async getProducts(paginationDto: PaginationDto) {
 
-        const { page, limit } = paginationDto
+        const { page, limit } = paginationDto; 
 
 
 
@@ -44,8 +44,9 @@ export class ProductService {
                 ProductModel.countDocuments(),
                 ProductModel.find()
                     .skip((page - 1) * limit)
-                    .limit(limit),
-                    // todo:populate
+                    .limit(limit)
+                    .populate('user', 'id name email')
+                    .populate('category', 'id name'),
             ]);
 
             return {

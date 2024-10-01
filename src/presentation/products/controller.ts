@@ -26,7 +26,10 @@ export class ProductController {
 
     createProduct = async (req: Request, res: Response) => {
 
-        const [error, createProductDto] = CreateProductDto.create(req.body);
+        const [error, createProductDto] = CreateProductDto.create({
+            ...req.body,
+            user: req.body.user.id,
+        });
         if (error) return res.status(400).json({ error });
 
         this.productService.createProduct(createProductDto!)
@@ -41,8 +44,6 @@ export class ProductController {
         const [error, paginationDto] = PaginationDto.create(+page,+limit);
 
         if (error) return res.status(400).json({error});
-
-        res.json(paginationDto);
 
         this.productService.getProducts(paginationDto!)
             .then(products => res.status(201).json(products))
