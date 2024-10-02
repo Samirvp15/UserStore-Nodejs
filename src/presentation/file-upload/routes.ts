@@ -19,7 +19,7 @@ export class FileUploadRoutes {
     // Definir las rutas
     // router.use('/api/todos', /*TodoRoutes.routes */ );
     router.post('/single/:type', controller.uploadFile);
-    router.get('/multiple/:type', controller.uploadMultipleFile );
+    router.post('/multiple/:type', controller.uploadMultipleFile );
 
 
     return router;
