@@ -1,5 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { Server } from 'https';
+import { Server } from 'http';
 
 
 interface Options {
